@@ -27,10 +27,15 @@ class Sudoku {
     }
   }
   for (c <- 0 until cols.size) {
+    println("col:"+c)
     cols(c) = new Group()
-    val fields = cols(c).fields
-    for (f <- 0 until fields.size) {
-      fields(f) = fieldInColRow(c, f)
+    println("cols(c): "+cols(c))
+    var cFields = cols(c).fields
+    println("fields: "+cFields)
+    for (f <- 0 until cFields.size) {
+      cFields(f) = fieldInColRow(c, f)
+      cFields(f).theCol = cols(c)
+      println("cFields(f): "+cFields(f))      
     }
   }
   for (b <- 0 until blocks.size) {
@@ -39,8 +44,12 @@ class Sudoku {
     for (f <- 0 until fields.size) {
       val coo = coordsForBlock(b, f)
       fields(f) = fieldInColRow(coo._1, coo._2)
+      fields(f).theBlock = blocks(b)
     }
   }
+  println(rows)
+  println(cols)
+  println(blocks)
   def fieldInColRow(x: Int, y: Int): Field = {
     rows(y).fields(x)
   }
@@ -79,15 +88,17 @@ class Sudoku {
 
 class Group {
   var fields = new Array[Field](9)
+
   def propagateNumber(field: Field){
     val num = field.number
+    println("propagateNumber: " + num)
     fields.foreach{f=>
       if(f==field){
-        if(f.number != num){
+        if(f.number != num && !(f.number==None)){
           throw new RuntimeException("falsche Zahl propagiert: "+num + " feld enthielt:"+f.number)
         }
       }else{
-        f.setNumber(num.get)
+        f.setNotNumber(num.get)
 //        val oldNum = f.number
 //        val nm2 = num :: f.nonMatching
 //        val discovered = f.number
@@ -98,19 +109,25 @@ class Group {
     }
   }
   def propagateNotNumber(field: Field, num:Int){
-     fields.foreach{f=>
+    println("propagateNotNumber")
+    // TODO an dieser Stelle testen, ob aus den Ausschlussnummern in dieser Gruppe eine Positivauswahl getroffen werden kann.
+     /*fields.foreach{f=>
       if(f!=field){
         f.setNotNumber(num)   
       }
-     }
+     }*/
   }
 }
 
 class Field(row: Group, col: Group, block: Group) {
-  var nonMatching:List[Int] = List[Int]()
+  var theRow:Group = row
+  var theCol:Group = col
+  var theBlock:Group = block
+  println("row:"+theRow+" col:"+theCol+" block:"+theBlock)
+  var nonMatching:Set[Int] = Set[Int]()
 
   def number:Option[Int] = {
-    var numbers: List[Int] = Nil
+    var numbers: Set[Int] = Set[Int]()
     numbers ++= 1 to 9
     numbers --= nonMatching
     if (numbers.size == 1) {
@@ -122,21 +139,22 @@ class Field(row: Group, col: Group, block: Group) {
   def setNumber(num:Int){
     nonMatching++= 1 to 9
     nonMatching -= num
-    col.propagateNumber(this)
-    row.propagateNumber(this)
-    block.propagateNumber(this)
+    println("nonMatching: " + nonMatching)
+    theCol.propagateNumber(this)
+    theRow.propagateNumber(this)
+    theBlock.propagateNumber(this)
   }
   def setNotNumber(num:Int){
     if(!nonMatching.contains(num)){
-      nonMatching = num :: nonMatching
+      nonMatching = nonMatching + num
       if(number == None){
-        col.propagateNotNumber(this, num)
-        row.propagateNotNumber(this, num)
-        block.propagateNotNumber(this, num)
+        theCol.propagateNotNumber(this, num)
+        theRow.propagateNotNumber(this, num)
+        theBlock.propagateNotNumber(this, num)
       } else {
-        col.propagateNumber(this)
-        row.propagateNumber(this)
-        block.propagateNumber(this)
+        theCol.propagateNumber(this)
+        theRow.propagateNumber(this)
+        theBlock.propagateNumber(this)
       }
     }
   }
@@ -153,8 +171,44 @@ object Sudoku {
     //    var field = new Field(sudoku.rows.head, sudoku.cols.head, sudoku.blocks.head)
    // var field = sudoku.fieldInColRow(0, 0)
    // field.nonMatching ++= List[Int](1, 2, 3, 4, 6, 5, 8, 9)
-    sudoku.setNumber(2,5,9)
-    sudoku.setNumber(3,6,5)  
+    sudoku.setNumber(0,0,8)
+    sudoku.setNumber(1,0,6)
+    sudoku.setNumber(2,0,1)
+    sudoku.setNumber(4,0,4)
+
+    sudoku.setNumber(2,1,9)
+    sudoku.setNumber(4,1,6)
+    sudoku.setNumber(5,1,5)
+    sudoku.setNumber(8,1,8)
+
+    sudoku.setNumber(0,2,4)
+    sudoku.setNumber(8,2,9)
+
+    sudoku.setNumber(1,3,7)
+    sudoku.setNumber(3,3,8)
+    sudoku.setNumber(5,3,2)
+
+    sudoku.setNumber(1,4,9)
+    sudoku.setNumber(8,4,2)
+
+    sudoku.setNumber(0,5,2)
+    sudoku.setNumber(1,5,4)
+    sudoku.setNumber(2,5,8)
+    sudoku.setNumber(3,5,5)
+
+    sudoku.setNumber(1,6,8)
+    sudoku.setNumber(3,6,6)
+    sudoku.setNumber(4,6,3)
+    sudoku.setNumber(6,6,1)
+
+    sudoku.setNumber(0,7,5)
+    sudoku.setNumber(2,7,7)
+    sudoku.setNumber(3,7,2)
+    sudoku.setNumber(6,7,3)
+    sudoku.setNumber(7,7,6)
+
+    sudoku.setNumber(3,8,7)
+    sudoku.setNumber(7,8,2)
     
     sudoku.dump
   }
