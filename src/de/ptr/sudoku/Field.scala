@@ -1,19 +1,25 @@
 package de.ptr.sudoku
 
+import collection.SortedSet
+
 /**
+ * Field ist eines von den 81 Feldern des Sudokufeldes.
+ * Jedes Field ist drei Gruppen zugeordnt: Reihe, Spalte, Block
+ * Das Field speichert nur die Information über nicht zutreffende Nummern.
+ * Die number wird als Option daraus berechnet und kann auch None sein.
+ *
  * Created by IntelliJ IDEA.
  * User: trappp
  * Date: 20.12.2010
  * Time: 09:43:09
- * To change this template use File | Settings | File Templates.
  */
 
-class Field(row: Group, col: Group, block: Group) {
-  var theRow:Group = row
-  var theCol:Group = col
-  var theBlock:Group = block
- // println("row:"+theRow+" col:"+theCol+" block:"+theBlock)
-  var nonMatching:Set[Int] = Set[Int]()
+class Field(r: Group, c: Group, b: Group) {
+  var row:Group = r
+  var col:Group = c
+  var block:Group = b
+
+  var nonMatching:SortedSet[Int] = SortedSet[Int]()
 
   def number:Option[Int] = {
     var numbers: Set[Int] = Set[Int]()
@@ -26,26 +32,31 @@ class Field(row: Group, col: Group, block: Group) {
     }
   }
   def setNumber(num:Int){
-    nonMatching++= 1 to 9
-    nonMatching -= num
-    println("nonMatching: " + nonMatching)
-    theCol.propagateNumber(this)
-    theRow.propagateNumber(this)
-    theBlock.propagateNumber(this)
+    if(number==None){
+      nonMatching++= 1 to 9
+      nonMatching -= num
+      //println("nonMatching: " + nonMatching)
+      col.propagateNumber(this)
+      row.propagateNumber(this)
+      block.propagateNumber(this)
+    }else{
+      if(number.get!=num)throw new RuntimeException()
+    }
   }
   def setNotNumber(num:Int){
     if(!nonMatching.contains(num)){
       nonMatching = nonMatching + num
       if(number == None){
-        theCol.propagateNotNumber(this, num)
-        theRow.propagateNotNumber(this, num)
-        theBlock.propagateNotNumber(this, num)
+        col.propagateNotNumber(this, num)
+        row.propagateNotNumber(this, num)
+        block.propagateNotNumber(this, num)
       } else {
-        println("number: " + number)
-        theCol.propagateNumber(this)
-        theRow.propagateNumber(this)
-        theBlock.propagateNumber(this)
+        col.propagateNumber(this)
+        row.propagateNumber(this)
+        block.propagateNumber(this)
       }
     }
   }
+  def x:Int=row.fields.indexOf(this)
+  def y:Int=col.fields.indexOf(this)
 }
