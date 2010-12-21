@@ -1,11 +1,10 @@
 package de.ptr.sudoku
 
 /**
- * Eine Gruppe ist entweder eine Reihe, Spalte oder ein Neunerblock auf dem Sudokufeld
- * Die Gruppe enthält immer 9 Felder.
+ * A Group is one of: row, column or Block.
+ * Each Group consists of exactly 9 Fields
  * 
- * Created by IntelliJ IDEA.
- * User: trappp
+ * User: VivaceVivo
  * Date: 20.12.2010
  * Time: 09:42:29
  */
@@ -19,7 +18,6 @@ class Group {
    */
   def propagateNumber(field: Field){
     val num = field.number
-    //println("propagateNumber: " + num)
     fields.foreach{f=>
       if(f==field){
         if(f.number != num && !(f.number==None)){
@@ -38,17 +36,29 @@ class Group {
    * als Positivtreffer propagiert.
    */
   def propagateNotNumber(field: Field, num:Int){
-    (1 to 9).foreach{zahl=>
-      // finde das Feld in der Gruppe ohne num in nonMatching
-      val matches = fields.filter{f=>
-        !f.nonMatching.contains(zahl)
-      }
-      if(matches.length == 1){
-        if(matches.head.number==None){
-          matches.head.setNumber(zahl)
-          println("Durch ausschluss ermittelt: " + zahl + " an Pos:"+ matches.head.x+","+ matches.head.y)
-        }
+//    (1 to 9).foreach{zahl=>
+//      // finde das Feld in der Gruppe ohne num in nonMatching
+//      val matches = fields.filter{f=>
+//        !f.nonMatching.contains(zahl)
+//      }
+//      if(matches.length == 1){
+//        if(matches.head.number==None){
+//          matches.head.setNumber(zahl)
+//          println("Durch ausschluss ermittelt: " + zahl + " an Pos:"+ matches.head.x+","+ matches.head.y)
+//        }
+//      }
+//    }
+
+    val matches = fields.filter{f=>
+      !f.nonMatching.contains(num)
+    }
+
+    if(matches.length == 1){
+      if(matches.head.number==None){
+        matches.head.setNumber(num)
+        println("Durch ausschluss ermittelt: " + num + " an Pos:"+ matches.head.x+","+ matches.head.y)
       }
     }
+
   }
 }

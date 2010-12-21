@@ -2,43 +2,46 @@ package de.ptr.sudoku
 
 
 /**
- * Ein simpler Sudoku Löser für leicht bis mittlere Sudokus.
- * Derzeit werden Felder nur nach streng logischen Regeln berechnet,
- * es findet kein Ausprobieren statt.
+ * A simple Sudoku solver for easy to medium difficult Sudokus
+ * Solving is done using pure logic, there is no brute force
+ * try and error.
+ * When a Sudoku is not fully solved, you need to guess values
+ * and try them manually.
  *
- * Created by IntelliJ IDEA.
- * User: trappp
+ * User: VivaceVivo
  * Date: 17.12.2010
  * Time: 22:43:28
  */
 
 class Sudoku {
-  val rows = new Array[Group](9)
+  // val rows = new Array[Group](9)
   val cols = new Array[Group](9)
   val blocks = new Array[Group](9)
 
-  // initialisierung der Gruppen:
-  // initialisierung der Reihen. Erzeugen der Felder
-  for (r <- 0 until rows.size) {
-    rows(r) = new Group()
-    val fields = rows(r).fields
-    for (f <- 0 until fields.size) {
-      fields(f) = new Field(rows(r), cols(f), blocks(blockNrFor(f, r)))
+  // initialising Groups:
+  // initialising rows. Creating Fields
+  val rows = Array.tabulate[Group](9){r=>
+    val group = new Group()
+    group.fields = Array.tabulate[Field](9){f=>
+      new Field(group, cols(f), blocks(blockNrFor(f, r)))
     }
+    group
   }
-  // Initialisieren der Spalten; die Felder aus den Reihen werden referenziert.
+
+  // initialising columns; referencing fields from rows
   for (c <- 0 until cols.size) {
     cols(c) = new Group()
-    var cFields = cols(c).fields
+    val cFields = cols(c).fields
     for (f <- 0 until cFields.size) {
       cFields(f) = fieldInColRow(c, f)
       cFields(f).col = cols(c)
     }
   }
-  // Initialisieren der Bloecke; die Felder aus den Reihen werden referenziert.
+
+  // initialising blocks; referencing fields from rows
   for (b <- 0 until blocks.size) {
     blocks(b) = new Group()
-    var fields = blocks(b).fields
+    val fields = blocks(b).fields
     for (f <- 0 until fields.size) {
       val coo = coordsForBlock(b, f)
       fields(f) = fieldInColRow(coo._1, coo._2)
@@ -49,20 +52,32 @@ class Sudoku {
   def fieldInColRow(x: Int, y: Int): Field = rows(y).fields(x)
 
   def blockNrFor(x: Int, y: Int) = {
-    var bCol = x / 3
-    var bRow = y / 3
+    val bCol = x / 3
+    val bRow = y / 3
     bCol + bRow * 3
   }
 
   def coordsForBlock(block: Int, blockPos: Int) = {
-    var blockRow = block / 3
-    var blocCol = block % 3
-    var blockPosRow = blockPos / 3
-    var blockPosCol = blockPos % 3
+    val blockRow = block / 3
+    val blocCol = block % 3
+    val blockPosRow = blockPos / 3
+    val blockPosCol = blockPos % 3
     (blocCol * 3 + blockPosCol, blockRow * 3 + blockPosRow)
   }
 
-  def dump() {
+  def solved:Boolean = {
+    var result = true
+    rows.foreach{r=>
+      result &&= r.fields.forall{f=>
+        f.number!=None
+      }
+    }
+    result
+  }
+
+  def dump(){if(solved)dumpSolved() else dumpCandidates()}
+
+  def dumpSolved() {
     rows.foreach {
       row =>
         row.fields.foreach {
@@ -83,7 +98,7 @@ class Sudoku {
   def dumpCandidates() {
     var len = 0
     rows.foreach{
-      _.fields.foreach(f=> len = max(len, f.nonMatching.size))
+      _.fields.foreach(f=> len = max(len, 8-(f.nonMatching.size)))
     }
 
     rows.foreach {
@@ -92,10 +107,11 @@ class Sudoku {
           f =>
             val num: Option[Int] = f.number
             if (num == None) {
-              f.nonMatching.foreach(print)
-              print(" "*(len-f.nonMatching.size+1))
+              val candidates = (1 to 9).diff(f.nonMatching.toSeq)
+              candidates.foreach(print)
+              print(" "*((len-candidates.size)+2))
             } else {
-              print(num.get + " "*len)
+              print(num.get + " "*(len+1))
             }
         }
         println
@@ -105,10 +121,22 @@ class Sudoku {
   def setNumber(x: Int, y: Int, num: Int) {
     println("Enter " + num + " at " + x + "," + y)
     rows(y).fields(x).setNumber(num)
-    dump()
+    dumpSolved()
     println
   }
-
+  
+  def readLine(row:Int, line:String){
+    if(line.length==9 && row>=0 && row <9){
+      var i = 0
+      line.foreach{n=>
+        n match{
+          case ' ' =>
+          case _ => setNumber(i, row, n.asDigit)
+        }
+        i+=1
+      }
+    }
+  }
 }
 
 
@@ -120,7 +148,7 @@ object Sudoku {
     //var row = new Group()
     //var col = new Group()
     //var block = new Group()
-    var sudoku = new Sudoku()
+    val sudoku = new Sudoku()
 
     //    var field = new Field(sudoku.rows.head, sudoku.cols.head, sudoku.blocks.head)
     // var field = sudoku.fieldInColRow(0, 0)
@@ -211,47 +239,61 @@ object Sudoku {
 
 
     // sehr schwierig!
-    sudoku.setNumber(0, 0, 8)
-    sudoku.setNumber(3, 0, 5)
-    sudoku.setNumber(5, 0, 6)
+//    sudoku.setNumber(0, 0, 8)
+//    sudoku.setNumber(3, 0, 5)
+//    sudoku.setNumber(5, 0, 6)
+//
+//    sudoku.setNumber(2, 1, 4)
+//    sudoku.setNumber(6, 1, 7)
+//    sudoku.setNumber(7, 1, 9)
+//
+//    sudoku.setNumber(1, 2, 5)
+//    sudoku.setNumber(3, 2, 9)
+//    sudoku.setNumber(4, 2, 3)
+//
+//    sudoku.setNumber(0, 3, 7)
+//    sudoku.setNumber(1, 3, 6)
+//    sudoku.setNumber(3, 3, 8)
+//
+//    sudoku.setNumber(0, 4, 4)
+//    sudoku.setNumber(2, 4, 3)
+//    sudoku.setNumber(6, 4, 5)
+//    sudoku.setNumber(8, 4, 8)
+//
+//    sudoku.setNumber(5, 5, 3)
+//    sudoku.setNumber(7, 5, 4)
+//    sudoku.setNumber(8, 5, 7)
+//
+//    sudoku.setNumber(4, 6, 6)
+//    sudoku.setNumber(5, 6, 8)
+//    sudoku.setNumber(7, 6, 1)
+//
+//    sudoku.setNumber(1, 7, 8)
+//    sudoku.setNumber(2, 7, 6)
+//    sudoku.setNumber(6, 7, 9)
+//
+//    sudoku.setNumber(3, 8, 3)
+//    sudoku.setNumber(5, 8, 2)
+//    sudoku.setNumber(8, 8, 6)
+//
+//    // guesses
+//    sudoku.setNumber(1, 0, 7)
 
-    sudoku.setNumber(2, 1, 4)
-    sudoku.setNumber(6, 1, 7)
-    sudoku.setNumber(7, 1, 9)
+    // aus Zeitung
+    sudoku.readLine(0, "   82 7  ")
+    sudoku.readLine(1, "     1 6 ")
+    sudoku.readLine(2, "    96328")
+    sudoku.readLine(3, "  4 1  9 ")
+    sudoku.readLine(4, "1 9   4 2")
+    sudoku.readLine(5, " 3  7 1  ")
+    sudoku.readLine(6, "46358    ")
+    sudoku.readLine(7, " 2 1     ")
+    sudoku.readLine(8, "  5 43   ") // "  5 43   "
+    // wild guess
+   // sudoku.setNumber(7, 0, 1)
 
-    sudoku.setNumber(1, 2, 5)
-    sudoku.setNumber(3, 2, 9)
-    sudoku.setNumber(4, 2, 3)
 
-    sudoku.setNumber(0, 3, 7)
-    sudoku.setNumber(1, 3, 6)
-    sudoku.setNumber(3, 3, 8)
-
-    sudoku.setNumber(0, 4, 4)
-    sudoku.setNumber(2, 4, 3)
-    sudoku.setNumber(6, 4, 5)
-    sudoku.setNumber(8, 4, 8)
-
-    sudoku.setNumber(5, 5, 3)
-    sudoku.setNumber(7, 5, 4)
-    sudoku.setNumber(8, 5, 7)
-
-    sudoku.setNumber(4, 6, 6)
-    sudoku.setNumber(5, 6, 8)
-    sudoku.setNumber(7, 6, 1)
-
-    sudoku.setNumber(1, 7, 8)
-    sudoku.setNumber(2, 7, 6)
-    sudoku.setNumber(6, 7, 9)
-
-    sudoku.setNumber(3, 8, 3)
-    sudoku.setNumber(5, 8, 2)
-    sudoku.setNumber(8, 8, 6)
-
-    // guesses
-  //  sudoku.setNumber(1, 0, 7)
-
-    sudoku.dumpCandidates()
+    sudoku.dump()
 
   }
 }
