@@ -1,0 +1,16 @@
+SudokuSolver
+============
+
+Simple Tool for solving Sudoku puzzles - merely for educational purposes
+
+Features:
+---------
+- 9 x 9 Sudoku
+- logical propagation of numbers
+- solves easy to medium Sudokus automaticly
+- solves difficult Sudokus with some manual assistence
+
+Future Plans:
+-------------
+- interactive mode
+- automatic solving of difficult Sudokus with "try'n error"-propagation
