@@ -21,7 +21,7 @@ class Group {
     fields.foreach{f=>
       if(f==field){
         if(f.number != num && !(f.number==None)){
-          throw new RuntimeException("falsche Zahl propagiert: "+num + " feld enthielt:"+f.number)
+          throw new FieldException("falsche Zahl propagiert: "+num + " feld enthielt:"+f.number)
         }
       }else if(! (num==None)){
         f.setNotNumber(num.get)

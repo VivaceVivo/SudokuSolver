@@ -34,14 +34,14 @@ class Field(r: Group, c: Group, b: Group) {
   def setNumber(num:Int){
     if(number==None){
       if(nonMatching.contains(num)){
-        throw new RuntimeException("Number is not matching!")
+        throw new FieldException("Number is not matching!")
       }
        nonMatching++= 1 to 9
        nonMatching -= num
 
       groups.foreach(_.propagateNumber(this))
     }else{
-      if(number.get!=num)throw new RuntimeException("Number already set!")
+      if(number.get!=num)throw new FieldException("Number already set!")
     }
   }
 

@@ -94,6 +94,16 @@ class Sudoku {
   }
 
   def max(x:Int, y:Int):Int=if(x<y)y else x
+
+  def reset(){
+    rows.foreach{row=>
+      resetLine(row)
+    }
+  }
+
+  def resetLine(row: Group){
+    row.fields.foreach(f=>f.nonMatching=f.nonMatching.take(0))
+  }
   
   def dumpCandidates() {
     var len = 0
@@ -125,16 +135,29 @@ class Sudoku {
     println
   }
   
-  def readLine(row:Int, line:String){
-    if(line.length==9 && row>=0 && row <9){
-      var i = 0
-      line.foreach{n=>
-        n match{
-          case ' ' =>
-          case _ => setNumber(i, row, n.asDigit)
+  def readLine(row:Int, line:String):Boolean={
+    try{
+      if(line.length==9 && row>=0 && row <9){
+        var i = 0
+        line.foreach{n=>
+          n match{
+            case ' ' =>
+            case _ => setNumber(i, row, n.asDigit)
+          }
+          i+=1
         }
-        i+=1
+        true
+      } else {
+        println("Bitte 9-Stellige Reihe eingeben (Leerzeichen für nicht besetztes Feld)")
+        false
       }
+    } catch {
+      case e:FieldException => {
+        println(e.getMessage)
+        resetLine(rows(row))
+        false
+      }
+
     }
   }
 }
@@ -155,11 +178,11 @@ object Sudoku {
     // field.nonMatching ++= List[Int](1, 2, 3, 4, 6, 5, 8, 9)
 
     // easy:
-    //    sudoku.setNumber(0,0,8)
-    //    sudoku.setNumber(1,0,6)
-    //    sudoku.setNumber(2,0,1)
-    //    sudoku.setNumber(4,0,4)
-    //sudoku.dump
+//        sudoku.setNumber(0,0,8)
+//        sudoku.setNumber(1,0,6)
+//        sudoku.setNumber(2,0,1)
+//        sudoku.setNumber(4,0,4)
+//    sudoku.dump
     //    sudoku.setNumber(2,1,9)
     //    sudoku.setNumber(4,1,6)
     //    sudoku.setNumber(5,1,5)
@@ -289,9 +312,22 @@ object Sudoku {
     sudoku.readLine(6, "46358    ")
     sudoku.readLine(7, " 2 1     ")
     sudoku.readLine(8, "  5 43   ") // "  5 43   "
+//    sudoku.setNumber(8, 8, 9)
+    sudoku.dump()
+    sudoku.reset()
+
     // wild guess
    // sudoku.setNumber(7, 0, 1)
 
+    (0 to 8).foreach{row=>
+      var processed:Boolean = false
+      print("        ")
+      (1 to 9).foreach(print)
+      println
+      while(! processed){
+        processed = sudoku.readLine(row, readLine("Zeile "+ row+":"))
+      }
+    }
 
     sudoku.dump()
 
