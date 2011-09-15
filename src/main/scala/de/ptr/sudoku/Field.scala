@@ -14,15 +14,20 @@ import collection.SortedSet
  */
 
 class Field(r: Group, c: Group, b: Group) {
-  val row:Group = r
-  var col:Group = c
-  var block:Group = b
+
+	val row: Group = r
+  
+  var col: Group = c
+  var block: Group = b
+
   lazy val groups = List(row, col, block)
+  var nonMatching = SortedSet[Int]()
 
-  var nonMatching:SortedSet[Int] = SortedSet[Int]()
-
-  def number:Option[Int] = {
-    val numbers = (1 to 9).diff(nonMatching.toSeq) 
+  /**
+   * erfragt, ob bereits bekannt ist, ob und welche Nummer das Feld hat.
+   */
+  def number: Option[Int] = {
+    val numbers = (1 to 9).diff(nonMatching.toSeq)
 
     if (numbers.size == 1) {
       Some(numbers.head)
@@ -31,30 +36,36 @@ class Field(r: Group, c: Group, b: Group) {
     }
   }
 
-  def setNumber(num:Int){
-    if(number==None){
-      if(nonMatching.contains(num)){
+  /**
+   * Setzt die Nummer für dieses Feld.
+   */
+  def setNumber(num: Int) {
+    if (number == None) {
+      if (nonMatching.contains(num)) {
         throw new FieldException("Number is not matching!")
       }
-       nonMatching++= 1 to 9
-       nonMatching -= num
+      nonMatching ++= 1 to 9
+      nonMatching -= num
 
-      groups.foreach(_.propagateNumber(this))
-    }else{
-      if(number.get!=num)throw new FieldException("Number already set!")
+      groups.foreach(_.propagateNumber(this, num))
+    } else {
+      if (number.get != num) throw new FieldException("Number already set!")
     }
   }
 
-  def setNotNumber(num:Int){
-    if(!nonMatching.contains(num)){
+  /**
+   * Meldet, daß eine Nummer nicht in diesem Feld sein kann
+   */
+  def setNotNumber(num: Int) {
+    if (!nonMatching.contains(num)) {
       nonMatching = nonMatching + num
-      if(number == None){
+      if (number == None) {
         groups.foreach(_.propagateNotNumber(this, num))
       } else {
-        groups.foreach(_.propagateNumber(this))
+        groups.foreach(_.propagateNumber(this, number.get))
       }
     }
   }
-  def x:Int=row.fields.indexOf(this)
-  def y:Int=col.fields.indexOf(this)
+  def x: Int = row.fields.indexOf(this)
+  def y: Int = col.fields.indexOf(this)
 }
