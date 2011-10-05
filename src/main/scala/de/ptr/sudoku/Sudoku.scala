@@ -13,7 +13,10 @@ package de.ptr.sudoku
  */
 
 class Sudoku {
-  val cols = new Array[Group](9)
+	
+  val cursor = new Cursor(9, 9)
+
+	val cols = new Array[Group](9)
   val blocks = new Array[Group](9)
 
   // initialising Groups:
@@ -47,13 +50,9 @@ class Sudoku {
     }
   }
 
-  def fieldInColRow(x: Int, y: Int): Field = rows(y).fields(x)
+  def fieldInColRow(x: Int, y: Int) = rows(y).fields(x)
 
-  def blockNrFor(x: Int, y: Int) = {
-    val bCol = x / 3
-    val bRow = y / 3
-    bCol + bRow * 3
-  }
+  def blockNrFor(x: Int, y: Int) = x/3 + y/9
 
   def coordsForBlock(block: Int, blockPos: Int) = {
     val blockRow = block / 3
@@ -73,37 +72,60 @@ class Sudoku {
     result
   }
 
-  def dump() { if (solved) dumpSolved() else dumpCandidates() }
+  def dump() { if (solved) dumpSolved(cursor.x, cursor.y) else dumpCandidates() }
 
-  def dumpSolved() {
+  def dumpSolved() {dumpSolved(cursor.x, cursor.y)}
+  
+  def dumpSolved(x: Int, y: Int) {
     var c = 0;
+    var r = 0;
+
+    println("x: " + x + " y:" + y)
     println(" -----+-----+-----")
     rows.foreach {
       row =>
-        print("|")
+        if (c == x && y == r) {
+          print("(")
+        } else {
+          print("|")
+        }
         row.fields.foreach {
           f =>
             c += 1
             val num: Option[Int] = f.number
             if (num == None) {
-              c % 3 match {
-              case 0 => print(".|")
-              case _ => print(". ")
-              }
+              printField(".", c, r)
             } else {
-              c % 3 match {
-                case 0 => print(num.get + "|")
-                case _ => print(num.get + " ")
-              }
+              printField(String.valueOf(num.get), c, r)
             }
         }
-        c % 27 match {
-          case 0 => println; println(" -----+-----+-----")
-          case _ => println
+        c = 0;
+        r = r + 1
+        
+        r % 3 match {
+        		case 0 => println; println(" -----+-----+-----")
+        		case _ => println
         }
     }
   }
+  
+  /**
+   * zeichnet ein Feld und markiert dabei die aktuelle Position
+   */
+  def printField(num: String, c: Int, r: Int) {
+    var blank = " ";
 
+    c % 3 match {
+      case 0 => blank = "|"
+      case _ =>
+    }
+
+    if (c == cursor.x && cursor.y == r) { blank = "(" }
+    if (c == cursor.x + 1 && cursor.y == r) { blank = ")" }
+
+    print(num + blank)
+  }
+  
   def dumpCandidates() {
     var len = 0
     rows.foreach {
@@ -128,21 +150,29 @@ class Sudoku {
   }
 
   def reset() {
-  	rows.foreach { row =>
-  	resetLine(row)
-  	}
+    rows.foreach { row =>
+      resetLine(row)
+    }
   }
 
   def resetLine(row: Group) {
-  	row.fields.foreach(f => f.nonMatching = f.nonMatching.take(0))
+    row.fields.foreach(f => f.nonMatching = f.nonMatching.take(0))
   }
 
   def max(x: Int, y: Int): Int = if (x < y) y else x
 
+	def setNumbers() {
+    
+  }
+  
   def setNumber(x: Int, y: Int, num: Int) {
     println("Enter " + num + " at " + x + "," + y)
-    rows(y).fields(x).setNumber(num)
-    dumpSolved()
+    try{
+    	rows(y).fields(x).setNumber(num)
+    }catch{
+      case fex: FieldException =>println(fex.getMessage())
+    }
+    dumpSolved(cursor.x, cursor.y)
     println
   }
 
@@ -153,7 +183,7 @@ class Sudoku {
         line.foreach { n =>
           n match {
             case ' ' =>
-            case _ => setNumber(i, row, n.asDigit)
+            case _   => setNumber(i, row, n.asDigit)
           }
           i += 1
         }
@@ -269,74 +299,90 @@ object Sudoku {
     //    sudoku.setNumber(1,4,6)
 
     // sehr schwierig!
-        sudoku.setNumber(0, 0, 8)
-        sudoku.setNumber(3, 0, 5)
-        sudoku.setNumber(5, 0, 6)
-    
-        sudoku.setNumber(2, 1, 4)
-        sudoku.setNumber(6, 1, 7)
-        sudoku.setNumber(7, 1, 9)
-    
-        sudoku.setNumber(1, 2, 5)
-        sudoku.setNumber(3, 2, 9)
-        sudoku.setNumber(4, 2, 3)
-    
-        sudoku.setNumber(0, 3, 7)
-        sudoku.setNumber(1, 3, 6)
-        sudoku.setNumber(3, 3, 8)
-    
-        sudoku.setNumber(0, 4, 4)
-        sudoku.setNumber(2, 4, 3)
-        sudoku.setNumber(6, 4, 5)
-        sudoku.setNumber(8, 4, 8)
-    
-        sudoku.setNumber(5, 5, 3)
-        sudoku.setNumber(7, 5, 4)
-        sudoku.setNumber(8, 5, 7)
-    
-        sudoku.setNumber(4, 6, 6)
-        sudoku.setNumber(5, 6, 8)
-        sudoku.setNumber(7, 6, 1)
-    
-        sudoku.setNumber(1, 7, 8)
-        sudoku.setNumber(2, 7, 6)
-        sudoku.setNumber(6, 7, 9)
-    
-        sudoku.setNumber(3, 8, 3)
-        sudoku.setNumber(5, 8, 2)
-        sudoku.setNumber(8, 8, 6)
-    
-        // guesses
-//        sudoku.setNumber(1, 0, 7)
+    sudoku.setNumber(0, 0, 8)
+    sudoku.setNumber(3, 0, 5)
+    sudoku.setNumber(5, 0, 6)
+
+    sudoku.setNumber(2, 1, 4)
+    sudoku.setNumber(6, 1, 7)
+    sudoku.setNumber(7, 1, 9)
+
+    sudoku.setNumber(1, 2, 5)
+    sudoku.setNumber(3, 2, 9)
+    sudoku.setNumber(4, 2, 3)
+
+    sudoku.setNumber(0, 3, 7)
+    sudoku.setNumber(1, 3, 6)
+    sudoku.setNumber(3, 3, 8)
+
+    sudoku.setNumber(0, 4, 4)
+    sudoku.setNumber(2, 4, 3)
+    sudoku.setNumber(6, 4, 5)
+    sudoku.setNumber(8, 4, 8)
+
+    sudoku.setNumber(5, 5, 3)
+    sudoku.setNumber(7, 5, 4)
+    sudoku.setNumber(8, 5, 7)
+
+    sudoku.setNumber(4, 6, 6)
+    sudoku.setNumber(5, 6, 8)
+    sudoku.setNumber(7, 6, 1)
+
+    sudoku.setNumber(1, 7, 8)
+    sudoku.setNumber(2, 7, 6)
+    sudoku.setNumber(6, 7, 9)
+
+    sudoku.setNumber(3, 8, 3)
+    sudoku.setNumber(5, 8, 2)
+    sudoku.setNumber(8, 8, 6)
+
+    // guesses
+    sudoku.setNumber(1, 0, 7)
 
     // aus Zeitung
-//    sudoku.readLine(0, "   82 7  ")
-//    sudoku.readLine(1, "     1 6 ")
-//    sudoku.readLine(2, "    96328")
-//    sudoku.readLine(3, "  4 1  9 ")
-//    sudoku.readLine(4, "1 9   4 2")
-//    sudoku.readLine(5, " 3  7 1  ")
-//    sudoku.readLine(6, "46358    ")
-//    sudoku.readLine(7, " 2 1     ")
-//    sudoku.readLine(8, "  5 43   ") // "  5 43   "
-//    sudoku.setNumber(8, 8, 9)
+    //    sudoku.readLine(0, "   82 7  ")
+    //    sudoku.readLine(1, "     1 6 ")
+    //    sudoku.readLine(2, "    96328")
+    //    sudoku.readLine(3, "  4 1  9 ")
+    //    sudoku.readLine(4, "1 9   4 2")
+    //    sudoku.readLine(5, " 3  7 1  ")
+    //    sudoku.readLine(6, "46358    ")
+    //    sudoku.readLine(7, " 2 1     ")
+    //    sudoku.readLine(8, "  5 43   ") // "  5 43   "
+    //    sudoku.setNumber(8, 8, 9)
     sudoku.dump()
-//    sudoku.reset()
 
     // wild guess
     // sudoku.setNumber(7, 0, 1)
-
-    (0 to 8).foreach { row =>
-      var processed: Boolean = false
-      print("        ")
-      (1 to 9).foreach(print)
-      println
-      while (!processed) {
-        processed = sudoku.readLine(row, readLine("Zeile " + row + ":"))
-      }
-    }
-
-    sudoku.dump()
+    
+    sudoku.reset()
+    sudoku.dumpSolved(sudoku.cursor.x, sudoku.cursor.y)
+    edit(sudoku);
 
   }
+
+  def edit(sudoku: Sudoku) {
+
+//    sudoku.dumpSolved(sudoku.cursor.x, sudoku.cursor.y)
+    var c = -1;
+    val terminal = new jline.WindowsTerminal();
+    terminal.initializeTerminal();
+    terminal.setDirectConsole(true);
+
+    while (c < 0) {
+      c = terminal.readCharacter(System.in);
+    }
+    
+    c match {
+      case 72 => sudoku.cursor.up();sudoku.dumpSolved()
+      case 80 => sudoku.cursor.down();sudoku.dumpSolved()
+      case 75 => sudoku.cursor.left();sudoku.dumpSolved()
+      case 77 => sudoku.cursor.right();sudoku.dumpSolved()
+      case nr => if(nr>=48 && nr<=57) sudoku.setNumber(sudoku.cursor.x, sudoku.cursor.y, nr-48)
+    }
+    if (c != 27) { //ESC
+      edit(sudoku);
+    }
+  }
+
 }
