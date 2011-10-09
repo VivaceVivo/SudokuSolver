@@ -13,17 +13,20 @@ package de.ptr.sudoku
  */
 
 class Sudoku {
+	val Width = 9;
+	val Height = 9;
+	val Numbers = 1 to 9;
 	
-  val cursor = new Cursor(9, 9)
+  val cursor = new Cursor(Width, Height)
 
-	val cols = new Array[Group](9)
-  val blocks = new Array[Group](9)
+	val cols = new Array[Group](Width)
+  val blocks = new Array[Group](Width)
 
   // initialising Groups:
   // initialising rows. Creating Fields
-  val rows = Array.tabulate[Group](9) { r =>
+  val rows = Array.tabulate[Group](Height) { r =>
     val group = new Group()
-    group.fields = Array.tabulate[Field](9) { f =>
+    group.fields = Array.tabulate[Field](Width) { f =>
       new Field(group, cols(f), blocks(blockNrFor(f, r)))
     }
     group
@@ -52,7 +55,7 @@ class Sudoku {
 
   def fieldInColRow(x: Int, y: Int) = rows(y).fields(x)
 
-  def blockNrFor(x: Int, y: Int) = x/3 + y/9
+  def blockNrFor(x: Int, y: Int) = x/3 + y/Width
 
   def coordsForBlock(block: Int, blockPos: Int) = {
     val blockRow = block / 3
@@ -138,7 +141,7 @@ class Sudoku {
           f =>
             val num: Option[Int] = f.number
             if (num == None) {
-              val candidates = (1 to 9).diff(f.nonMatching.toSeq)
+              val candidates = (Numbers).diff(f.nonMatching.toSeq)
               candidates.foreach(print)
               print(" " * ((len - candidates.size) + 2))
             } else {
@@ -178,7 +181,7 @@ class Sudoku {
 
   def readLine(row: Int, line: String): Boolean = {
     try {
-      if (line.length == 9 && row >= 0 && row < 9) {
+      if (line.length == Width && row >= 0 && row < Height) {
         var i = 0
         line.foreach { n =>
           n match {
