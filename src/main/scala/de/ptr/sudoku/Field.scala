@@ -15,6 +15,7 @@ import collection.SortedSet
 
 class Field(r: Group, c: Group, b: Group) {
 
+  val Numbers = 1 to 9;
 	val row: Group = r
   
   var col: Group = c
@@ -68,4 +69,6 @@ class Field(r: Group, c: Group, b: Group) {
   }
   def x: Int = row.fields.indexOf(this)
   def y: Int = col.fields.indexOf(this)
+  def candidates = Numbers.diff(nonMatching.toSeq)
+  
 }
