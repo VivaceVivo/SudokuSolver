@@ -13,12 +13,12 @@ class GUI extends PApplet {
     override def dumpSolved() {
       val x = cursor.x
       val y = cursor.y
-      var c = 0;
-      var r = 0;
+      var c = 0
+      var r = 0
 
       paintGrid
 
-//      text("x:" + x + " y:" + y + " candidates: " + fieldInColRow(x, y).candidates.mkString(","), 10, 30)
+//      text("x:" + x + " y:" + y + " candidates: " + fieldInColRow(x, y).candidates.mkString(","), 10, 3)
       rows.foreach {
         row =>
           r = r + 1
@@ -61,17 +61,14 @@ class GUI extends PApplet {
   }
 
   override def setup {
-    size(700, 400);
-    background(255);
+    size(900, 600)
+    background(255)
 
     addKeyListener(new KeyListener() {
-      override def keyTyped(event: KeyEvent) {
-      }
-      override def keyReleased(event: KeyEvent) {
+      override def keyTyped(event: KeyEvent) {}
+      override def keyReleased(event: KeyEvent) {}
 
-      }
       override def keyPressed(event: KeyEvent) {
-
         event.getKeyCode() match {
           case KeyEvent.VK_UP    => sudoku.cursor.up();
           case KeyEvent.VK_DOWN  => sudoku.cursor.down();
@@ -88,23 +85,20 @@ class GUI extends PApplet {
   }
 
   override def draw {
-    //    stroke(0);
-    //    if (mousePressed) {
-    //      line(mouseX, mouseY, pmouseX, pmouseY);
-    //      ellipse(mouseX, mouseY, pmouseX, pmouseY);
-    //    }
-    //    val f = loadFont("Ziggurat-48.vlw");
     background(255);
-    val f = loadFont("AndaleMono-36.vlw");
-    textFont(f, Grid);
-    fill(0);
-    //    text("1234567890", 10, 100);
+    val f = loadFont("AndaleMono-36.vlw")
+    textFont(f, Grid)
+    fill(0)
+    text("1234567890", 20, 420)
+    text("x:" + sudoku.cursor.x + " y:" + sudoku.cursor.y + " - " + sudoku.fieldInColRow(sudoku.cursor.x, sudoku.cursor.y).candidates.mkString(""), 10, 26)
     sudoku.dumpSolved()
   }
 
-  object GUI {
-    def main(args: Array[String]) {
-      PApplet.main(Array[String] { "--present"; "de.ptr.sudoku.GUI" });
-    }
+
+}
+
+object GUI {
+  def main(args: Array[String]) {
+    PApplet.main(Array[String] { "--present"; "de.ptr.sudoku.GUI" });
   }
 }

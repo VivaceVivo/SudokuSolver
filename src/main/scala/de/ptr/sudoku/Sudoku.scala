@@ -12,10 +12,9 @@ package de.ptr.sudoku
  * Time: 22:43:28
  */
 
-class Sudoku {
-  val Width = 9;
-  val Height = 9;
-  //	val Numbers = 1 to 9;
+abstract class Sudoku {
+  val Width = 9
+  val Height = 9
 
   val cursor = new Cursor(Width, Height)
 
@@ -69,46 +68,13 @@ class Sudoku {
     var result = true
     rows.foreach { r =>
       result &&= r.fields.forall { f =>
-        f.number != None
+        f.number.isDefined
       }
     }
     result
   }
 
-  def dumpSolved() {
-    val x = cursor.x
-    val y = cursor.y
-    var c = 0;
-    var r = 0;
-
-    println("x:" + x + " y:" + y + " candidates: " + fieldInColRow(x, y).candidates.mkString(","))
-    println(" -----+-----+-----")
-    rows.foreach {
-      row =>
-        if (c == x && y == r) {
-          print("(")
-        } else {
-          print("|")
-        }
-        row.fields.foreach {
-          f =>
-            c += 1
-            val num: Option[Int] = f.number
-            if (num == None) {
-              printField(".", c, r)
-            } else {
-              printField(String.valueOf(num.get), c, r)
-            }
-        }
-        c = 0;
-        r = r + 1
-
-        r % 3 match {
-          case 0 => println; println(" -----+-----+-----")
-          case _ => println
-        }
-    }
-  }
+  def dumpSolved()
 
   /**
    * zeichnet ein Feld und markiert dabei die aktuelle Position
@@ -167,34 +133,3 @@ class Sudoku {
 
 }
 
-object Sudoku {
-  def main(args: Array[String]) {
-    val sudoku = new Sudoku()
-    edit(sudoku);
-  }
-
-  def edit(sudoku: Sudoku) {
-    sudoku.dumpSolved()
-    var char = -1;
-    val terminal = new jline.WindowsTerminal();
-    terminal.initializeTerminal();
-    terminal.setDirectConsole(true);
-
-    while (char < 0) {
-      char = terminal.readCharacter(System.in);
-    }
-
-    char match {
-      case 72  => sudoku.cursor.up(); sudoku.dumpSolved()
-      case 80  => sudoku.cursor.down(); sudoku.dumpSolved()
-      case 75  => sudoku.cursor.left(); sudoku.dumpSolved()
-      case 77  => sudoku.cursor.right(); sudoku.dumpSolved()
-      case 'c' => sudoku.reset(); sudoku.dumpSolved()
-      case nr  => if (nr >= 48 && nr <= 57) sudoku.setNumber(sudoku.cursor.x, sudoku.cursor.y, nr - 48)
-    }
-    if (char != 27) { //ESC
-      edit(sudoku);
-    }
-  }
-
-}
