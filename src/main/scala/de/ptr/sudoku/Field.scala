@@ -41,7 +41,7 @@ class Field(r: Group, c: Group, b: Group) {
    * Setzt die Nummer für dieses Feld.
    */
   def setNumber(num: Int) {
-    if (number == None) {
+    if (!number.isDefined) {
       if (nonMatching.contains(num)) {
         throw new FieldException("Number is not matching!")
       }

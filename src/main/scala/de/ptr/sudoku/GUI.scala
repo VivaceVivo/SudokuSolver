@@ -1,7 +1,6 @@
 package de.ptr.sudoku
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
-import java.lang.String
 
 import processing.core.PApplet
 
@@ -18,7 +17,6 @@ class GUI extends PApplet {
 
       paintGrid
 
-//      text("x:" + x + " y:" + y + " candidates: " + fieldInColRow(x, y).candidates.mkString(","), 10, 3)
       rows.foreach {
         row =>
           r = r + 1
@@ -47,6 +45,7 @@ class GUI extends PApplet {
       }
     }
 
+
   }
   def paintGrid {
     stroke(0)
@@ -69,14 +68,18 @@ class GUI extends PApplet {
       override def keyReleased(event: KeyEvent) {}
 
       override def keyPressed(event: KeyEvent) {
-        event.getKeyCode() match {
-          case KeyEvent.VK_UP    => sudoku.cursor.up();
-          case KeyEvent.VK_DOWN  => sudoku.cursor.down();
-          case KeyEvent.VK_LEFT  => sudoku.cursor.left();
-          case KeyEvent.VK_RIGHT => sudoku.cursor.right();
-          case 'c'               => sudoku.reset();
+        val keyChar = event.getKeyCode().toChar
+        println("pressed: "+ keyChar)
+        keyChar match {
+          case KeyEvent.VK_UP    => sudoku.cursor.up()
+          case KeyEvent.VK_DOWN  => sudoku.cursor.down()
+          case KeyEvent.VK_LEFT  => sudoku.cursor.left()
+          case KeyEvent.VK_RIGHT => sudoku.cursor.right()
+          case 'S'               => sudoku.save()
+          case 'L'               => sudoku.load();
+          case 'C'               => sudoku.reset();
+          case KeyEvent.VK_BACK_SPACE => sudoku.undo
           case nr                => if (nr >= 48 && nr <= 57) sudoku.setNumber(sudoku.cursor.x, sudoku.cursor.y, nr - 48)
-
         }
 
       }
@@ -92,6 +95,9 @@ class GUI extends PApplet {
     text("1234567890", 20, 420)
     text("x:" + sudoku.cursor.x + " y:" + sudoku.cursor.y + " - " + sudoku.fieldInColRow(sudoku.cursor.x, sudoku.cursor.y).candidates.mkString(""), 10, 26)
     sudoku.dumpSolved()
+    val x = sudoku.cursor.x
+    val y = sudoku.cursor.y
+    text("x:" + x + " y:" + y + " candidates: " + sudoku.fieldInColRow(x, y).candidates.mkString(","), 10, 3)
   }
 
 
@@ -99,6 +105,6 @@ class GUI extends PApplet {
 
 object GUI {
   def main(args: Array[String]) {
-    PApplet.main(Array[String] { "--present"; "de.ptr.sudoku.GUI" });
+    PApplet.main(Array[String] { "--present"; "de.ptr.sudoku.GUI" })
   }
 }

@@ -1,5 +1,10 @@
 package de.ptr.sudoku
 
+import java.io.{File, PrintWriter}
+import java.util.Scanner
+
+import scala.io.Source
+
 /**
  * A simple Sudoku solver for easy to medium difficult Sudokus
  * Solving is done using pure logic, there is no brute force
@@ -20,6 +25,8 @@ abstract class Sudoku {
 
   val cols = new Array[Group](Width)
   val blocks = new Array[Group](Width)
+
+  var history:List[(Int, Int, Int)] = Nil;
 
   // initialising Groups:
   // initialising rows. Creating Fields
@@ -76,23 +83,6 @@ abstract class Sudoku {
 
   def dumpSolved()
 
-  /**
-   * zeichnet ein Feld und markiert dabei die aktuelle Position
-   */
-  def printField(num: String, c: Int, r: Int) {
-    var blank = " ";
-
-    c % 3 match {
-      case 0 => blank = "|"
-      case _ =>
-    }
-
-    if (c == cursor.x && cursor.y == r) { blank = "(" }
-    if (c == cursor.x + 1 && cursor.y == r) { blank = ")" }
-
-    print(num + blank)
-  }
-
   def reset() {
     rows.foreach { row =>
       resetLine(row)
@@ -100,6 +90,7 @@ abstract class Sudoku {
     def resetLine(row: Group) {
       row.fields.foreach(f => f.nonMatching = f.nonMatching.take(0))
     }
+    history = Nil
   }
 
   def max(x: Int, y: Int): Int = if (x < y) y else x
@@ -124,11 +115,68 @@ abstract class Sudoku {
     println("Enter " + num + " at " + x + "," + y)
     try {
       rows(y).fields(x).setNumber(num)
+      history = (x, y, num)::history
     } catch {
       case fex: FieldException => println(fex.getMessage())
     }
     dumpSolved()
     println
+  }
+
+  def querySaveTo():Option[File] = {
+    println("Enter file name to store sudoku:")
+    val scanner = new Scanner(System.in)
+    val saveTo = scanner.nextLine()
+    val resultFile = new File(saveTo)
+    if(resultFile.getParentFile.isDirectory && resultFile.getParentFile.canWrite){
+      Some(resultFile)
+    } else {
+      None
+    }
+  }
+  def queryLoadFrom():Option[File] = {
+    println("Enter file name to load sudoku from:")
+    val scanner = new Scanner(System.in)
+    val loadFrom = scanner.nextLine()
+    val resultFile = new File(loadFrom)
+    if(resultFile.isFile && resultFile.canRead){
+      Some(resultFile)
+    } else {
+      None
+    }
+  }
+
+  def undo = {
+    val moves = history.drop(1).reverse
+    reset()
+    moves.foreach{case(x, y, num) => setNumber(x, y, num)}
+  }
+
+  def load(): Unit ={
+    val loadFrom = queryLoadFrom()
+    loadFrom.foreach{file =>
+      reset()
+      setNumbers(Source.fromFile(file).getLines().next())
+    }
+  }
+
+  def save(): Unit ={
+    val saveTo = querySaveTo()
+    saveTo.foreach{file =>
+      val fos = new PrintWriter(file)
+      println("saving file to: " + file.getName)
+      fos.write(serializeNumbers())
+      fos.flush()
+      fos.close()
+    }
+  }
+
+  def serializeNumbers():String = {
+    val numbers = for{
+      row <- rows
+      field <- row.fields
+    }yield(field.number.map(String.valueOf).getOrElse(" "))
+    numbers.reduce((a, b) => a+b)
   }
 
 }
