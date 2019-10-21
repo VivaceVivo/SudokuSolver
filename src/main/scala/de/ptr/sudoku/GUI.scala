@@ -78,6 +78,7 @@ class GUI extends PApplet {
           case 'S'               => sudoku.save()
           case 'L'               => sudoku.load();
           case 'C'               => sudoku.reset();
+          case 'T'               => sudoku.toggleStepMode;
           case KeyEvent.VK_BACK_SPACE => sudoku.undo
           case nr                => if (nr >= 48 && nr <= 57) sudoku.setNumber(sudoku.cursor.x, sudoku.cursor.y, nr - 48)
         }
@@ -92,7 +93,7 @@ class GUI extends PApplet {
     val f = loadFont("AndaleMono-36.vlw")
     textFont(f, Grid)
     fill(0)
-    text("1234567890", 20, 420)
+//    text("1234567890", 20, 420)
     text("x:" + sudoku.cursor.x + " y:" + sudoku.cursor.y + " - " + sudoku.fieldInColRow(sudoku.cursor.x, sudoku.cursor.y).candidates.mkString(""), 10, 26)
     sudoku.dumpSolved()
     val x = sudoku.cursor.x

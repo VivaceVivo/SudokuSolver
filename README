@@ -14,3 +14,9 @@ Future Plans:
 -------------
 - interactive mode
 - automatic solving of difficult Sudokus with "try'n error"-propagation
+
+Sudoku trix
+===========
+Wenn innerhalb einer Gruppe eine Zahl nur ein einziges Mal vorkommt, also:
+Wenn die n Felder einer Gruppe z.B. die Ausprägugen 67, 67, 467 haben, ist die 4 nur an einer Stelle möglich.
+Wenn innerhalb eines Blocks eine Ziffer zwar an mehreren Stellen vorkommt, jedoch diese in einer Reihe liegen.

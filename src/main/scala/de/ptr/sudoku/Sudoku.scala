@@ -26,12 +26,19 @@ abstract class Sudoku {
   val cols = new Array[Group](Width)
   val blocks = new Array[Group](Width)
 
-  var history:List[(Int, Int, Int)] = Nil;
+  var history:List[(Int, Int, Int)] = Nil
+
+  var stepMode:Boolean = false
+
+  def toggleStepMode = {
+    stepMode = !stepMode
+    println(s"stepMode is ${if(stepMode)"enabled" else "disabled"}")
+  }
 
   // initialising Groups:
   // initialising rows. Creating Fields
   val rows = Array.tabulate[Group](Height) { r =>
-    val group = new Group()
+    val group = new Group("r")
     group.fields = Array.tabulate[Field](Width) { f =>
       new Field(group, cols(f), blocks(blockNrFor(f, r)))
     }
@@ -40,7 +47,7 @@ abstract class Sudoku {
 
   // initialising columns; referencing fields from rows
   for (c <- 0 until cols.size) {
-    cols(c) = new Group()
+    cols(c) = new Group("c")
     val cFields = cols(c).fields
     for (f <- 0 until cFields.size) {
       cFields(f) = fieldInColRow(c, f)
@@ -50,7 +57,7 @@ abstract class Sudoku {
 
   // initialising blocks; referencing fields from rows
   for (b <- 0 until blocks.size) {
-    blocks(b) = new Group()
+    blocks(b) = new Group("b")
     val fields = blocks(b).fields
     for (f <- 0 until fields.size) {
       val coo = coordsForBlock(b, f)
@@ -112,7 +119,7 @@ abstract class Sudoku {
   }
 
   def setNumber(x: Int, y: Int, num: Int) {
-    println("Enter " + num + " at " + x + "," + y)
+//    println("Enter " + num + " at " + x + "," + y)
     try {
       rows(y).fields(x).setNumber(num)
       history = (x, y, num)::history
@@ -120,7 +127,7 @@ abstract class Sudoku {
       case fex: FieldException => println(fex.getMessage())
     }
     dumpSolved()
-    println
+//    println
   }
 
   def querySaveTo():Option[File] = {

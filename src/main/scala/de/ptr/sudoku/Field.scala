@@ -16,8 +16,8 @@ import collection.SortedSet
 class Field(r: Group, c: Group, b: Group) {
 
   val Numbers = 1 to 9;
+
 	val row: Group = r
-  
   var col: Group = c
   var block: Group = b
 
@@ -28,7 +28,7 @@ class Field(r: Group, c: Group, b: Group) {
    * erfragt, ob bereits bekannt ist, ob und welche Nummer das Feld hat.
    */
   def number: Option[Int] = {
-    val numbers = (1 to 9).diff(nonMatching.toSeq)
+    val numbers = candidates
 
     if (numbers.size == 1) {
       Some(numbers.head)
@@ -45,11 +45,12 @@ class Field(r: Group, c: Group, b: Group) {
       if (nonMatching.contains(num)) {
         throw new FieldException("Number is not matching!")
       }
-      nonMatching ++= 1 to 9
+      nonMatching ++= (1 to 9)
       nonMatching -= num
 
       groups.foreach(_.propagateNumber(this, num))
-    } else {
+    }
+    if(number.isDefined){ // wegen nebenläufigkeit nicht else
       if (number.get != num) throw new FieldException("Number already set!")
     }
   }
@@ -60,13 +61,19 @@ class Field(r: Group, c: Group, b: Group) {
   def setNotNumber(num: Int) {
     if (!nonMatching.contains(num)) {
       nonMatching = nonMatching + num
-      if (number == None) {
+      if (!number.isDefined) {
         groups.foreach(_.propagateNotNumber(this, num))
-      } else {
-        groups.foreach(_.propagateNumber(this, number.get))
+      }
+
+      if(number.isDefined){ // wegen nebenläufigkeit nicht else
+        // TODO maybe use numberoptional.foreach:
+        number.foreach(n =>
+          groups.foreach(_.propagateNumber(this, n))
+        )
       }
     }
   }
+
   def x: Int = row.fields.indexOf(this)
   def y: Int = col.fields.indexOf(this)
   def candidates = Numbers.diff(nonMatching.toSeq)
